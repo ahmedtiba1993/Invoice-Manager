@@ -1,8 +1,16 @@
 package com.tiba.invoice.exception;
 
-public class DuplicateEntityException extends RuntimeException{
+import java.util.List;
 
-    public DuplicateEntityException(String message) {
-        super(message);
-    }
+public class DuplicateEntityException extends RuntimeException {
+  private final List<String> errors;
+
+  public DuplicateEntityException(List<String> errors) {
+    super();
+    this.errors = errors;
+  }
+
+  public List<String> getErrors() {
+    return errors;
+  }
 }

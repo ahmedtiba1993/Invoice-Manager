@@ -15,7 +15,7 @@
       </jdbc-additional-properties>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="jdbc:h2:file:./data/invoice [DEBUG]" group="​BackendApplication" uuid="69ab01dc-c197-46bf-9b9f-9e476a6a4921">
+    <data-source source="LOCAL" name="jdbc:h2:file:./data/invoice [DEBUG]" group="​BackendApplication" uuid="0142677f-e4eb-45fc-b8d9-405776f71caa">
       <driver-ref>h2.unified</driver-ref>
       <synchronize>true</synchronize>
       <imported>true</imported>
