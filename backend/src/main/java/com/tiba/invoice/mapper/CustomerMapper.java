@@ -24,4 +24,20 @@ public class CustomerMapper {
                 .email(customerRequest.email())
                 .build();
     }
+
+    public void updateEntity(Customer customer, CustomerRequest customerRequest) {
+        if (customer == null || customerRequest == null) {
+            return;
+        }
+
+        customer.setFirstName(customerRequest.firstName());
+        customer.setLastName(customerRequest.lastName());
+        customer.setBusinessName(customerRequest.businessName());
+        customer.setAddress(customerRequest.address());
+        customer.setPhoneNumber(customerRequest.phoneNumber());
+        customer.setClientCode(customerRequest.clientCode());
+        customer.setDiscount(customerRequest.discount());
+        customer.setEmail(customerRequest.email());
+    }
+
 }

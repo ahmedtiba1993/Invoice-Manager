@@ -5,6 +5,7 @@ import com.tiba.invoice.entity.Customer;
 import com.tiba.invoice.exception.DuplicateEntityException;
 import com.tiba.invoice.mapper.CustomerMapper;
 import com.tiba.invoice.repository.CustomerRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,26 +16,62 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CustomerService {
 
-    private final CustomerRepository customerRepository;
-    private final CustomerMapper customerMapper;
+  private final CustomerRepository customerRepository;
+  private final CustomerMapper customerMapper;
 
-    public Long addCustomer(CustomerRequest customerRequest) {
+  public Long addCustomer(CustomerRequest customerRequest) {
 
-        List<String> errors = new ArrayList<>();
+    validateCustomerUniqueness(customerRequest, null);
 
-        if (customerRepository.existsByEmail(customerRequest.email())) {
-            errors.add("EMAIL_ALREADY_EXISTS");
-        }
+    return customerRepository.save(customerMapper.toEntity(customerRequest)).getId();
+  }
 
-        if (customerRepository.existsByClientCode(customerRequest.clientCode())) {
-            errors.add("CLIENTCODE_ALREADY_EXISTS");
-        }
+  public Long updateCustomer(Long id, CustomerRequest customerRequest) {
 
-        if (!errors.isEmpty()) {
-            throw new DuplicateEntityException(errors);
-        }
+    Customer existingCustomer =
+        customerRepository
+            .findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("CUSTOMER_NOT_FOUND_WITH_ID_" + id));
 
+    validateCustomerUniqueness(customerRequest, id);
 
-        return customerRepository.save(customerMapper.toEntity(customerRequest)).getId();
+    customerMapper.updateEntity(existingCustomer, customerRequest);
+
+    return customerRepository.save(existingCustomer).getId();
+  }
+
+  private void validateCustomerUniqueness(CustomerRequest request, Long id) {
+    List<String> errors = new ArrayList<>();
+
+    customerRepository
+        .findByEmail(request.email())
+        .ifPresent(
+            customer -> {
+              if (id == null || !customer.getId().equals(id)) {
+                errors.add("EMAIL_ALREADY_EXISTS");
+              }
+            });
+
+    customerRepository
+        .findByPhoneNumber(request.phoneNumber())
+        .ifPresent(
+            customer -> {
+              if (id == null || !customer.getId().equals(id)) {
+                errors.add("PHONE_NUMBER_ALREADY_EXISTS");
+              }
+            });
+
+    customerRepository
+        .findByClientCode(request.clientCode())
+        .ifPresent(
+            customer -> {
+              if (id == null || !customer.getId().equals(id)) {
+                errors.add("CLIENT_CODE_ALREADY_EXISTS");
+              }
+            });
+
+    if (!errors.isEmpty()) {
+      throw new DuplicateEntityException(errors);
     }
+  }
 }
