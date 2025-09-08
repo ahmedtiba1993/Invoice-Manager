@@ -16,18 +16,13 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@SequenceGenerator(
-        name = "default_seq",
-        sequenceName = "role_seq",
-        allocationSize = 1
-)
+@SequenceGenerator(name = "default_seq", sequenceName = "role_seq", allocationSize = 1)
 public class Role extends BaseEntity {
 
-    @Column(unique = true)
-    private String name;
+  @Column(unique = true)
+  private String name;
 
-    @ManyToMany(mappedBy = "roles")
-    @JsonIgnore
-    private List<User> user;
-
+  @ManyToMany(mappedBy = "roles")
+  @JsonIgnore
+  private List<User> users;
 }

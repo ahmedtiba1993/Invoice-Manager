@@ -1,16 +1,23 @@
 package com.tiba.invoice.service;
 
 import com.tiba.invoice.dto.request.CustomerRequest;
+import com.tiba.invoice.dto.response.CustomerResponse;
+import com.tiba.invoice.dto.response.PageResponseDto;
 import com.tiba.invoice.entity.Customer;
 import com.tiba.invoice.exception.DuplicateEntityException;
 import com.tiba.invoice.mapper.CustomerMapper;
 import com.tiba.invoice.repository.CustomerRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -73,5 +80,20 @@ public class CustomerService {
     if (!errors.isEmpty()) {
       throw new DuplicateEntityException(errors);
     }
+  }
+
+  public PageResponseDto<CustomerResponse> getAllCustomersPaginated(int page, int size) {
+
+    Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
+    Page<Customer> customerPage = customerRepository.findAll(pageable);
+    List<CustomerResponse> customerList =
+        customerPage.stream().map(customerMapper::toResponse).toList();
+
+    return PageResponseDto.fromPage(customerPage, customerList);
+  }
+
+  public List<CustomerResponse> getAllCustomers() {
+    List<Customer> customers = customerRepository.findAll();
+    return customers.stream().map(customerMapper::toResponse).collect(Collectors.toList());
   }
 }
