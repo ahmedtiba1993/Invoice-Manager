@@ -3,36 +3,37 @@ package com.tiba.invoice.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.SequenceGenerator;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@SequenceGenerator(
-        name = "default_seq",
-        sequenceName = "customer_seq",
-        allocationSize = 1
-)
-public class Customer extends BaseEntity{
+@SequenceGenerator(name = "default_seq", sequenceName = "customer_seq", allocationSize = 1)
+public class Customer extends BaseEntity {
 
-    private String firstName;
-    private String lastName;
-    private String businessName;
-    private String address;
+  @Column(nullable = false, length = 50)
+  private String firstName;
 
-    @Column(unique = true)
-    private String phoneNumber;
+  @Column(nullable = false, length = 50)
+  private String lastName;
 
-    @Column(unique = true)
-    private String clientCode;
+  @Column(length = 100)
+  private String businessName;
 
-    private Double discount;
+  @Column(nullable = false, length = 255)
+  private String address;
 
-    @Column(unique = true)
-    private String email;
+  @Column(nullable = false, length = 8)
+  private String phoneNumber;
+
+  @Column(unique = true)
+  private String clientCode;
+
+  private Double discount;
+
+  @Column(unique = true, nullable = false, length = 100)
+  private String email;
 }
