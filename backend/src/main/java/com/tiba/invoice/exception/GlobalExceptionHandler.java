@@ -10,10 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import static com.tiba.invoice.exception.BusinessErrorCodes.*;
 import static org.springframework.http.HttpStatus.*;
@@ -61,23 +58,18 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<ExceptionResponse> handleMethodArgumentNotValidException(
-      MethodArgumentNotValidException exp) {
-    Set<String> errors = new HashSet<>();
-    exp.getBindingResult()
-        .getAllErrors()
-        .forEach(
-            error -> {
-              var errorMessage = error.getDefaultMessage();
-              errors.add(errorMessage);
-            });
+  public ResponseEntity<ApiResponse<List<String>>> handleMethodArgumentNotValidException(
+      MethodArgumentNotValidException ex) {
 
-    return ResponseEntity.status(BAD_REQUEST)
-        .body(ExceptionResponse.builder().validationErrors(errors).build());
+    List<String> errors =
+        ex.getBindingResult().getAllErrors().stream()
+            .map(error -> error.getDefaultMessage())
+            .toList();
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(ApiResponse.error(errors, "Validation failed"));
   }
 
-  // Cette méthode gère toutes les autres exceptions qui n'ont pas été traitées par les méthodes
-  // précédentes
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ExceptionResponse> handleException(Exception exp) {
     exp.printStackTrace();
