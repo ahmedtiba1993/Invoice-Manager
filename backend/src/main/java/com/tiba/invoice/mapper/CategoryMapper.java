@@ -25,4 +25,12 @@ public class CategoryMapper {
     response.setDescription(category.getDescription());
     return response;
   }
+
+  public void updateEntity(Category existingCategory, CategoryRequest request) {
+    if (request == null || existingCategory == null) {
+      return;
+    }
+    existingCategory.setName(request.name());
+    existingCategory.setDescription(request.description());
+  }
 }

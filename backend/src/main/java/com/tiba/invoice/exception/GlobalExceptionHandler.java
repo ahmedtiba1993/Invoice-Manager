@@ -1,6 +1,7 @@
 package com.tiba.invoice.exception;
 
 import com.tiba.invoice.dto.response.ApiResponse;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -55,6 +56,12 @@ public class GlobalExceptionHandler {
       DuplicateEntityException ex) {
     return ResponseEntity.status(HttpStatus.CONFLICT)
         .body(ApiResponse.error(ex.getErrors(), "Duplicate entity found"));
+  }
+
+  @ExceptionHandler(EntityNotFoundException.class)
+  public ResponseEntity<ApiResponse<String>> handleEntityNotFoundException(
+      EntityNotFoundException ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(ex.getMessage()));
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
