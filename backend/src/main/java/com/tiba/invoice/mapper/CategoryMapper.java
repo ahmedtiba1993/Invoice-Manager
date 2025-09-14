@@ -1,7 +1,7 @@
 package com.tiba.invoice.mapper;
 
 import com.tiba.invoice.dto.request.CategoryRequest;
-import com.tiba.invoice.dto.request.CategoryResponse;
+import com.tiba.invoice.dto.response.CategoryResponse;
 import com.tiba.invoice.entity.Category;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +21,7 @@ public class CategoryMapper {
   public CategoryResponse toResponse(Category category) {
     if (category == null) return null;
     CategoryResponse response = new CategoryResponse();
+    response.setId(category.getId());
     response.setName(category.getName());
     response.setDescription(category.getDescription());
     return response;

@@ -1,4 +1,4 @@
-package com.tiba.invoice.dto.request;
+package com.tiba.invoice.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,7 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CategoryResponse {
-
+  Long id;
   String name;
   String description;
 }
