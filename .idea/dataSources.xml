@@ -23,13 +23,5 @@
       <jdbc-url>jdbc:h2:file:./data/invoice</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="jdbc:h2:file:./data/invoice [DEBUG]" group="​BackendApplication" uuid="d2bf7356-2c13-42d6-83a2-1194757da2e0">
-      <driver-ref>h2.unified</driver-ref>
-      <synchronize>true</synchronize>
-      <imported>true</imported>
-      <jdbc-driver>org.h2.Driver</jdbc-driver>
-      <jdbc-url>jdbc:h2:file:./data/invoice</jdbc-url>
-      <working-dir>$ProjectFileDir$</working-dir>
-    </data-source>
   </component>
 </project>
