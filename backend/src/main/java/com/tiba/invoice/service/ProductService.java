@@ -69,4 +69,14 @@ public class ProductService {
     List<Product> products = productRepository.findAll();
     return products.stream().map(productMapper::toResponse).collect(Collectors.toList());
   }
+
+  public void validateProductsExistence(List<Long> productIds) {
+    List<Long> distinctProductIds = productIds.stream().distinct().toList();
+    long foundProductsCount = productRepository.countByIdIn(distinctProductIds);
+      if (foundProductsCount != distinctProductIds.size()) {
+          throw new EntityNotFoundException(
+                  "ONE_OR_MORE_PRODUCTS_NOT_FOUND_VERIFY_PROVIDED_IDS"
+          );
+      }
+  }
 }

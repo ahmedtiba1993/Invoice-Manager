@@ -96,4 +96,10 @@ public class CustomerService {
     List<Customer> customers = customerRepository.findAll();
     return customers.stream().map(customerMapper::toResponse).collect(Collectors.toList());
   }
+
+  public Customer findCustomerByIdOrThrow(Long id) {
+    return customerRepository
+        .findById(id)
+        .orElseThrow(() -> new EntityNotFoundException("CLIENT_NOT_FOUND_WITH_ID_" + id));
+  }
 }
