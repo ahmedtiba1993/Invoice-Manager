@@ -2,12 +2,14 @@ package com.tiba.invoice.service;
 
 import com.tiba.invoice.dto.request.InvoiceLineRequest;
 import com.tiba.invoice.dto.request.InvoiceRequest;
+import com.tiba.invoice.dto.response.InvoiceDetailResponse;
 import com.tiba.invoice.dto.response.InvoiceSummaryResponse;
 import com.tiba.invoice.dto.response.PageResponseDto;
 import com.tiba.invoice.entity.*;
 import com.tiba.invoice.mapper.InvoiceMapper;
 import com.tiba.invoice.repository.InvoiceRepository;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -141,5 +143,14 @@ public class InvoiceService {
     List<InvoiceSummaryResponse> invoiceList =
         invoicePage.stream().map(invoiceMapper::toInvoiceSummary).toList();
     return PageResponseDto.fromPage(invoicePage, invoiceList);
+  }
+
+  @Transactional(readOnly = true)
+  public InvoiceDetailResponse getInvoiceDetailsById(Long id) {
+    Invoice invoice =
+        invoiceRepository
+            .findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Invoice not found with id: " + id));
+    return invoiceMapper.toDetailResponse(invoice);
   }
 }

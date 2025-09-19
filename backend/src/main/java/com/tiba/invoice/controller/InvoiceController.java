@@ -2,6 +2,7 @@ package com.tiba.invoice.controller;
 
 import com.tiba.invoice.dto.request.InvoiceRequest;
 import com.tiba.invoice.dto.response.ApiResponse;
+import com.tiba.invoice.dto.response.InvoiceDetailResponse;
 import com.tiba.invoice.dto.response.InvoiceSummaryResponse;
 import com.tiba.invoice.dto.response.PageResponseDto;
 import com.tiba.invoice.service.InvoiceService;
@@ -37,6 +38,17 @@ public class InvoiceController {
 
     ApiResponse<PageResponseDto<InvoiceSummaryResponse>> response =
         ApiResponse.success(invoicePage, "INVOICES_FETCHED_SUCCESSFULLY");
+
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
+
+  @GetMapping("/{id}")
+  public ResponseEntity<ApiResponse<InvoiceDetailResponse>> getInvoiceById(@PathVariable Long id) {
+
+    InvoiceDetailResponse invoiceDetails = invoiceService.getInvoiceDetailsById(id);
+
+    ApiResponse<InvoiceDetailResponse> response =
+        ApiResponse.success(invoiceDetails, "INVOICE_DETAILS_FETCHED_SUCCESSFULLY");
 
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
