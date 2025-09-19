@@ -2,10 +2,17 @@ package com.tiba.invoice.service;
 
 import com.tiba.invoice.dto.request.InvoiceLineRequest;
 import com.tiba.invoice.dto.request.InvoiceRequest;
+import com.tiba.invoice.dto.response.InvoiceSummaryResponse;
+import com.tiba.invoice.dto.response.PageResponseDto;
 import com.tiba.invoice.entity.*;
+import com.tiba.invoice.mapper.InvoiceMapper;
 import com.tiba.invoice.repository.InvoiceRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +31,7 @@ public class InvoiceService {
   private final ProductService productService;
   private final FiscalConfigService fiscalConfigService;
   private final EntityManager entityManager;
+  private final InvoiceMapper invoiceMapper;
 
   @Transactional
   public Long createInvoice(InvoiceRequest request) {
@@ -125,5 +133,13 @@ public class InvoiceService {
     int currentYear = LocalDate.now().getYear();
     long count = invoiceRepository.countByYear(currentYear);
     return String.format("%d-%04d", currentYear, count + 1);
+  }
+
+  public PageResponseDto<InvoiceSummaryResponse> getAllInvoicesPaginated(int page, int size) {
+    Pageable pageable = PageRequest.of(page, size, Sort.by("invoiceDate").descending());
+    Page<Invoice> invoicePage = invoiceRepository.findAll(pageable);
+    List<InvoiceSummaryResponse> invoiceList =
+        invoicePage.stream().map(invoiceMapper::toInvoiceSummary).toList();
+    return PageResponseDto.fromPage(invoicePage, invoiceList);
   }
 }
