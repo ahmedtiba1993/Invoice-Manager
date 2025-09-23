@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,6 +57,7 @@ public class ProductService {
     return productRepository.save(product).getId();
   }
 
+  @Transactional(readOnly = true)
   public PageResponseDto<ProductResponse> getAllProductsPaginated(int page, int size) {
 
     Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").ascending());
@@ -65,18 +67,16 @@ public class ProductService {
     return PageResponseDto.fromPage(productPage, productList);
   }
 
+  @Transactional(readOnly = true)
   public List<ProductResponse> getAllProducts() {
-    List<Product> products = productRepository.findAll();
-    return products.stream().map(productMapper::toResponse).collect(Collectors.toList());
+    return productRepository.findAll().stream().map(productMapper::toResponse).toList();
   }
 
   public void validateProductsExistence(List<Long> productIds) {
     List<Long> distinctProductIds = productIds.stream().distinct().toList();
     long foundProductsCount = productRepository.countByIdIn(distinctProductIds);
-      if (foundProductsCount != distinctProductIds.size()) {
-          throw new EntityNotFoundException(
-                  "ONE_OR_MORE_PRODUCTS_NOT_FOUND_VERIFY_PROVIDED_IDS"
-          );
-      }
+    if (foundProductsCount != distinctProductIds.size()) {
+      throw new EntityNotFoundException("ONE_OR_MORE_PRODUCTS_NOT_FOUND_VERIFY_PROVIDED_IDS");
+    }
   }
 }

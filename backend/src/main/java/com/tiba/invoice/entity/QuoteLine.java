@@ -12,8 +12,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@SequenceGenerator(name = "default_seq", sequenceName = "invoice_line_seq", allocationSize = 1)
-public class InvoiceLine extends BaseEntity {
+@SequenceGenerator(name = "default_seq", sequenceName = "quote_line_seq", allocationSize = 1)
+public class QuoteLine extends BaseEntity {
 
   @Positive
   @Column(nullable = false)
@@ -29,8 +29,8 @@ public class InvoiceLine extends BaseEntity {
   private BigDecimal totalPrice; //  Total price for this line (quantity * unit price) - discount
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "invoice_id", nullable = false)
-  private Invoice invoice;
+  @JoinColumn(name = "quote_id", nullable = false)
+  private Quote quote;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "product_id", nullable = false)

@@ -14,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,13 +27,13 @@ public class CustomerService {
   private final CustomerRepository customerRepository;
   private final CustomerMapper customerMapper;
 
+  @Transactional
   public Long addCustomer(CustomerRequest customerRequest) {
-
     validateCustomerUniqueness(customerRequest, null);
-
     return customerRepository.save(customerMapper.toEntity(customerRequest)).getId();
   }
 
+  @Transactional
   public Long updateCustomer(Long id, CustomerRequest customerRequest) {
 
     Customer existingCustomer =
@@ -82,6 +83,7 @@ public class CustomerService {
     }
   }
 
+  @Transactional(readOnly = true)
   public PageResponseDto<CustomerResponse> getAllCustomersPaginated(int page, int size) {
 
     Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
@@ -92,14 +94,16 @@ public class CustomerService {
     return PageResponseDto.fromPage(customerPage, customerList);
   }
 
+  @Transactional(readOnly = true)
   public List<CustomerResponse> getAllCustomers() {
     List<Customer> customers = customerRepository.findAll();
-    return customers.stream().map(customerMapper::toResponse).collect(Collectors.toList());
+    return customers.stream().map(customerMapper::toResponse).toList();
   }
 
+  @Transactional(readOnly = true)
   public Customer findCustomerByIdOrThrow(Long id) {
     return customerRepository
         .findById(id)
-        .orElseThrow(() -> new EntityNotFoundException("CLIENT_NOT_FOUND_WITH_ID_" + id));
+        .orElseThrow(() -> new EntityNotFoundException("CUSTOMER_NOT_FOUND_WITH_ID_" + id));
   }
 }

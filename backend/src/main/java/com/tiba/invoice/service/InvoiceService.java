@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,65 +39,26 @@ public class InvoiceService {
   @Transactional
   public Long createInvoice(InvoiceRequest request) {
 
-    // Verify customer existence
+    // Validate customer
     Customer customer = customerService.findCustomerByIdOrThrow(request.customerId());
 
-    // Validate that all provided product IDs exist in the database
-    List<Long> productIdsFromRequest =
-        request.invoiceLines().stream().map(InvoiceLineRequest::productId).toList();
-    productService.validateProductsExistence(productIdsFromRequest);
+    // Validate products
+    validateProductsExistence(request);
 
-    // Get fiscal configuration (VAT rate, tax stamp, etc.)
+    // Get fiscal configuration
     FiscalConfig fiscalConfig = fiscalConfigService.getFiscalConfig();
 
-    // Create a new invoice and set basic information
-    Invoice invoice = new Invoice();
-    invoice.setReference(generateReferenceDev());
-    invoice.setCustomer(customer);
-    invoice.setInvoiceDate(request.invoiceDate());
+    // Build the base invoice object
+    Invoice invoice = buildInvoiceBase(request, customer);
 
-    // Prepare list of invoice lines and initialize subtotal
-    List<InvoiceLine> invoiceLines = new ArrayList<>();
-    BigDecimal subtotal = BigDecimal.ZERO;
+    // Build invoice lines and calculate subtotal
+    List<InvoiceLine> invoiceLines = buildInvoiceLines(request, invoice);
+    BigDecimal subtotal = calculateSubtotal(invoiceLines);
 
-    // Process each invoice line by calculating the subtota and creating the invoice
-    for (InvoiceLineRequest lineRequest : request.invoiceLines()) {
+    // Calculate VAT
+    BigDecimal totalWithVat = calculateTotalWithVat(subtotal, fiscalConfig.getVatRate());
 
-      BigDecimal unitPrice = lineRequest.unitPrice();
-      BigDecimal quantity = new BigDecimal(lineRequest.quantity());
-
-      BigDecimal lineSubtotal = unitPrice.multiply(quantity);
-
-      BigDecimal discountAmount =
-          lineSubtotal.multiply(new BigDecimal(lineRequest.discount())).divide(new BigDecimal(100));
-
-      BigDecimal lineTotal = lineSubtotal.subtract(discountAmount);
-
-      Product product = new Product();
-      product.setId(lineRequest.productId());
-
-      InvoiceLine invoiceLine =
-          InvoiceLine.builder()
-              .totalPrice(lineTotal)
-              .unitPrice(lineRequest.unitPrice())
-              .discount(lineRequest.discount())
-              .quantity(lineRequest.quantity())
-              .product(product)
-              .invoice(invoice)
-              .build();
-
-      subtotal = subtotal.add(lineTotal);
-
-      invoiceLines.add(invoiceLine);
-    }
-
-    // Calculate VAT multiplier (e.g., 19% → 1.19)
-    BigDecimal vatMultiplier =
-        BigDecimal.ONE.add(
-            BigDecimal.valueOf(fiscalConfig.getVatRate()).divide(BigDecimal.valueOf(100)));
-    BigDecimal totalWithVat = subtotal.multiply(vatMultiplier);
-
-    // Set calculated values into invoice
+    // Populate the invoice with final values
     invoice.setInvoiceLines(invoiceLines);
     invoice.setSubtotal(subtotal.doubleValue());
     invoice.setTotalAmount(totalWithVat.doubleValue());
@@ -137,6 +99,67 @@ public class InvoiceService {
     return String.format("%d-%04d", currentYear, count + 1);
   }
 
+  private void validateProductsExistence(InvoiceRequest request) {
+    List<Long> productIds =
+        request.invoiceLines().stream().map(InvoiceLineRequest::productId).toList();
+    productService.validateProductsExistence(productIds);
+  }
+
+  private Invoice buildInvoiceBase(InvoiceRequest request, Customer customer) {
+    Invoice invoice = new Invoice();
+    invoice.setReference(generateReferenceDev());
+    invoice.setCustomer(customer);
+    invoice.setDocumentDate(request.invoiceDate());
+    return invoice;
+  }
+
+  private List<InvoiceLine> buildInvoiceLines(InvoiceRequest request, Invoice invoice) {
+    List<InvoiceLine> invoiceLines = new ArrayList<>();
+
+    for (InvoiceLineRequest lineRequest : request.invoiceLines()) {
+      BigDecimal unitPrice = lineRequest.unitPrice();
+      BigDecimal quantity = BigDecimal.valueOf(lineRequest.quantity());
+
+      BigDecimal lineSubtotal = unitPrice.multiply(quantity);
+      BigDecimal discountAmount =
+          lineSubtotal
+              .multiply(BigDecimal.valueOf(lineRequest.discount()))
+              .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+
+      BigDecimal lineTotal = lineSubtotal.subtract(discountAmount);
+
+      Product product = new Product();
+      product.setId(lineRequest.productId());
+
+      InvoiceLine invoiceLine =
+          InvoiceLine.builder()
+              .totalPrice(lineTotal)
+              .unitPrice(unitPrice)
+              .discount(lineRequest.discount())
+              .quantity(lineRequest.quantity())
+              .product(product)
+              .invoice(invoice)
+              .build();
+
+      invoiceLines.add(invoiceLine);
+    }
+
+    return invoiceLines;
+  }
+
+  private BigDecimal calculateSubtotal(List<InvoiceLine> invoiceLines) {
+    return invoiceLines.stream()
+        .map(InvoiceLine::getTotalPrice)
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+  }
+
+  private BigDecimal calculateTotalWithVat(BigDecimal subtotal, double vatRate) {
+    BigDecimal vatMultiplier =
+        BigDecimal.ONE.add(BigDecimal.valueOf(vatRate).divide(BigDecimal.valueOf(100)));
+    return subtotal.multiply(vatMultiplier);
+  }
+
+  @Transactional(readOnly = true)
   public PageResponseDto<InvoiceSummaryResponse> getAllInvoicesPaginated(int page, int size) {
     Pageable pageable = PageRequest.of(page, size, Sort.by("invoiceDate").descending());
     Page<Invoice> invoicePage = invoiceRepository.findAll(pageable);

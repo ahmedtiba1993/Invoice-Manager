@@ -9,11 +9,13 @@ import com.tiba.invoice.mapper.CategoryMapper;
 import com.tiba.invoice.repository.CategoryRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,24 +25,23 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CategoryService {
 
   private final CategoryRepository categoryRepository;
   private final CategoryMapper categoryMapper;
 
+  @Transactional
   public Long addCategory(CategoryRequest request) {
 
-    List<String> errors = new ArrayList<>();
     if (categoryRepository.existsByName(request.name())) {
-      errors.add("CATEGORY_NAME_ALREADY_EXISTS");
-    }
-    if (errors.size() > 0) {
-      throw new DuplicateEntityException(errors);
+      throw new DuplicateEntityException(Collections.singletonList("CATEGORY_NAME_ALREADY_EXISTS"));
     }
 
     return categoryRepository.save(categoryMapper.toCategory(request)).getId();
   }
 
+  @Transactional
   public Long updateCategory(Long id, CategoryRequest request) {
 
     Category existingCategory =
@@ -63,6 +64,7 @@ public class CategoryService {
     return categoryRepository.save(existingCategory).getId();
   }
 
+  @Transactional(readOnly = true)
   public PageResponseDto<CategoryResponse> getAllCategoriesPaginated(int page, int size) {
     Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
     Page<Category> categoryPage = categoryRepository.findAll(pageable);
@@ -71,11 +73,12 @@ public class CategoryService {
     return PageResponseDto.fromPage(categoryPage, categoryList);
   }
 
+  @Transactional(readOnly = true)
   public List<CategoryResponse> getAllCategoriesList() {
-    List<Category> categories = categoryRepository.findAll();
-    return categories.stream().map(categoryMapper::toResponse).collect(Collectors.toList());
+    return categoryRepository.findAll().stream().map(categoryMapper::toResponse).toList();
   }
 
+  @Transactional(readOnly = true)
   public Optional<Category> findCategoryById(Long id) {
     return categoryRepository.findById(id);
   }
