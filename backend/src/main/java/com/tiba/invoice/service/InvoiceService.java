@@ -1,5 +1,6 @@
 package com.tiba.invoice.service;
 
+import com.tiba.invoice.dto.request.InvoiceFilterRequest;
 import com.tiba.invoice.dto.request.InvoiceLineRequest;
 import com.tiba.invoice.dto.request.InvoiceRequest;
 import com.tiba.invoice.dto.response.InvoiceDetailResponse;
@@ -160,9 +161,21 @@ public class InvoiceService {
   }
 
   @Transactional(readOnly = true)
-  public PageResponseDto<InvoiceSummaryResponse> getAllInvoicesPaginated(int page, int size) {
-    Pageable pageable = PageRequest.of(page, size, Sort.by("invoiceDate").descending());
-    Page<Invoice> invoicePage = invoiceRepository.findAll(pageable);
+  public PageResponseDto<InvoiceSummaryResponse> getAllInvoicesPaginated(
+      InvoiceFilterRequest filter, int page, int size) {
+
+    Pageable pageable = PageRequest.of(page, size, Sort.by("documentDate").descending());
+
+    Page<Invoice> invoicePage =
+        invoiceRepository.getAllInvoicesPaginated(
+            filter.paymentStatus(),
+            filter.reference(),
+            filter.startDate(),
+            filter.endDate(),
+            filter.customerId(),
+            filter.minTotalAmount(),
+            filter.maxTotalAmount(),
+            pageable);
     List<InvoiceSummaryResponse> invoiceList =
         invoicePage.stream().map(invoiceMapper::toInvoiceSummary).toList();
     return PageResponseDto.fromPage(invoicePage, invoiceList);

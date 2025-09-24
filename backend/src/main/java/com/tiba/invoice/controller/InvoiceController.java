@@ -1,5 +1,6 @@
 package com.tiba.invoice.controller;
 
+import com.tiba.invoice.dto.request.InvoiceFilterRequest;
 import com.tiba.invoice.dto.request.InvoiceRequest;
 import com.tiba.invoice.dto.response.ApiResponse;
 import com.tiba.invoice.dto.response.InvoiceDetailResponse;
@@ -27,19 +28,20 @@ public class InvoiceController {
     return new ResponseEntity<>(response, HttpStatus.CREATED);
   }
 
-  @GetMapping
+  @PostMapping("/search")
   public ResponseEntity<ApiResponse<PageResponseDto<InvoiceSummaryResponse>>>
-      getAllInvoicesPaginated(
+      searchInvoicesPaginated(
           @RequestParam(name = "page", defaultValue = "0") int page,
-          @RequestParam(name = "size", defaultValue = "10") int size) {
+          @RequestParam(name = "size", defaultValue = "10") int size,
+          @RequestBody InvoiceFilterRequest filter) {
 
     PageResponseDto<InvoiceSummaryResponse> invoicePage =
-        invoiceService.getAllInvoicesPaginated(page, size);
+        invoiceService.getAllInvoicesPaginated(filter, page, size);
 
     ApiResponse<PageResponseDto<InvoiceSummaryResponse>> response =
         ApiResponse.success(invoicePage, "INVOICES_FETCHED_SUCCESSFULLY");
 
-    return new ResponseEntity<>(response, HttpStatus.OK);
+    return ResponseEntity.ok(response);
   }
 
   @GetMapping("/{id}")
