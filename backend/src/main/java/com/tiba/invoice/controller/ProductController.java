@@ -1,5 +1,6 @@
 package com.tiba.invoice.controller;
 
+import com.tiba.invoice.dto.request.ProductFilterRequest;
 import com.tiba.invoice.dto.request.ProductRequest;
 import com.tiba.invoice.dto.response.ApiResponse;
 import com.tiba.invoice.dto.response.PageResponseDto;
@@ -27,13 +28,14 @@ public class ProductController {
     return new ResponseEntity<>(response, HttpStatus.CREATED);
   }
 
-  @GetMapping
+  @PostMapping("/search")
   public ResponseEntity<ApiResponse<PageResponseDto<ProductResponse>>> getProductsPaginated(
       @RequestParam(name = "page", defaultValue = "0") int page,
-      @RequestParam(name = "size", defaultValue = "10") int size) {
+      @RequestParam(name = "size", defaultValue = "10") int size,
+      @RequestBody ProductFilterRequest filter) {
 
     PageResponseDto<ProductResponse> productPage =
-        productService.getAllProductsPaginated(page, size);
+        productService.getAllProductsPaginated(filter, page, size);
     ApiResponse<PageResponseDto<ProductResponse>> response =
         ApiResponse.success(productPage, "PRODUCTS_FETCHED_SUCCESSFULLY");
     return new ResponseEntity<>(response, HttpStatus.OK);

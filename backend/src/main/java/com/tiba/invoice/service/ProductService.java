@@ -1,5 +1,6 @@
 package com.tiba.invoice.service;
 
+import com.tiba.invoice.dto.request.ProductFilterRequest;
 import com.tiba.invoice.dto.request.ProductRequest;
 import com.tiba.invoice.dto.response.PageResponseDto;
 import com.tiba.invoice.dto.response.ProductResponse;
@@ -58,10 +59,12 @@ public class ProductService {
   }
 
   @Transactional(readOnly = true)
-  public PageResponseDto<ProductResponse> getAllProductsPaginated(int page, int size) {
-
+  public PageResponseDto<ProductResponse> getAllProductsPaginated(
+      ProductFilterRequest filter, int page, int size) {
     Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").ascending());
-    Page<Product> productPage = productRepository.findAll(pageable);
+    Page<Product> productPage =
+        productRepository.filterProducts(
+            filter.name(), filter.code(), filter.discountStatus(), filter.categoryId(), pageable);
     List<ProductResponse> productList =
         productPage.stream().map(productMapper::toResponse).toList();
     return PageResponseDto.fromPage(productPage, productList);
