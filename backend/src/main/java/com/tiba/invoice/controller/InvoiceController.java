@@ -9,9 +9,13 @@ import com.tiba.invoice.dto.response.PageResponseDto;
 import com.tiba.invoice.service.InvoiceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/invoices")
@@ -53,5 +57,16 @@ public class InvoiceController {
         ApiResponse.success(invoiceDetails, "INVOICE_DETAILS_FETCHED_SUCCESSFULLY");
 
     return new ResponseEntity<>(response, HttpStatus.OK);
+  }
+
+  @GetMapping("/{id}/pdf")
+  public ResponseEntity<byte[]> downloadInvoice(@PathVariable Long id) throws IOException {
+
+    byte[] pdfBytes = invoiceService.generateInvoicePdf(id);
+
+    return ResponseEntity.ok()
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=invoice_" + id + ".pdf")
+        .contentType(MediaType.APPLICATION_PDF)
+        .body(pdfBytes);
   }
 }

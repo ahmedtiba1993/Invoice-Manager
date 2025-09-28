@@ -9,6 +9,7 @@ import com.tiba.invoice.dto.response.PageResponseDto;
 import com.tiba.invoice.entity.*;
 import com.tiba.invoice.mapper.InvoiceMapper;
 import com.tiba.invoice.repository.InvoiceRepository;
+import com.tiba.invoice.util.NumberToWordsUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -36,6 +41,7 @@ public class InvoiceService {
   private final FiscalConfigService fiscalConfigService;
   private final EntityManager entityManager;
   private final InvoiceMapper invoiceMapper;
+  private final TemplateEngine templateEngine;
 
   @Transactional
   public Long createInvoice(InvoiceRequest request) {
@@ -188,5 +194,43 @@ public class InvoiceService {
             .findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Invoice not found with id: " + id));
     return invoiceMapper.toDetailResponse(invoice);
+  }
+
+  public Invoice getInvoiceById(Long id) {
+    return invoiceRepository
+        .findById(id)
+        .orElseThrow(() -> new EntityNotFoundException("Invoice not found with id: " + id));
+  }
+
+  public byte[] generateInvoicePdf(Long invoiceId) {
+
+    Invoice invoice = getInvoiceById(invoiceId);
+    try {
+      // Préparer le contexte Thymeleaf
+      Context context = new Context();
+      context.setVariable("invoice", invoice);
+      context.setVariable("customer", invoice.getCustomer());
+      context.setVariable("lines", invoice.getInvoiceLines());
+
+      String amountInWords = NumberToWordsUtil.convert(invoice.getTotalAmount());
+      context.setVariable("amountInWords", amountInWords);
+
+      // Générer le HTML avec Thymeleaf
+      String htmlContent = templateEngine.process("invoice-template", context);
+
+      // Convertir en PDF
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
+      ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+      PdfRendererBuilder builder = new PdfRendererBuilder();
+      builder.useFastMode();
+      builder.withHtmlContent(htmlContent, null);
+      builder.toStream(outputStream);
+      builder.run();
+
+      return outputStream.toByteArray();
+
+    } catch (Exception e) {
+      throw new RuntimeException("Error generating PDF invoice", e);
+    }
   }
 }

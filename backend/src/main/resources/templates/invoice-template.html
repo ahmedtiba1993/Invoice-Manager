@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>Facture - [[${invoice.reference}]]</title>
+    <style>
+        /* Styles simples dédiés à la facture */
+        :root {
+            --accent: #0d6efd;
+            --muted: #6c757d;
+            --border: #e0e0e0;
+            font-size: 13px;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            color: #222;
+            margin: 24px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 18px;
+        }
+
+        .left h1 {
+            margin: 0;
+            font-size: 20px;
+            color: var(--accent);
+        }
+
+        .meta {
+            color: var(--muted);
+            margin-top: 6px;
+            font-size: 12px;
+        }
+
+        .client, .info {
+            width: 48%;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .card {
+            border: 1px solid var(--border);
+            padding: 10px;
+            border-radius: 4px;
+            background: #fff;
+        }
+
+        table.invoice {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        table.invoice th, table.invoice td {
+            border: 1px solid var(--border);
+            padding: 8px 10px;
+            vertical-align: middle;
+        }
+
+        table.invoice th {
+            background: #f8f9fa;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .totals {
+            width: 360px;
+            margin-left: auto;
+            margin-top: 12px;
+            border-collapse: collapse;
+        }
+
+        .totals td {
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+        }
+
+        .totals tr.total {
+            background: #f1f5ff;
+            font-weight: 700;
+        }
+
+        .amount-words {
+            margin-top: 14px;
+            font-style: italic;
+            color: var(--muted);
+        }
+
+        footer {
+            margin-top: 26px;
+            font-size: 12px;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .signature {
+            text-align: center;
+            margin-top: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="left">
+        <h1>Business Name</h1>
+        <div class="meta">
+            <div><strong>Adresse :</strong> <span>Adresse entreprise</span></div>
+            <div><strong>Tél :</strong> <span>+216 ...</span></div>
+            <div><strong>MF :</strong> <span>000000</span></div>
+        </div>
+    </div>
+
+    <div class="right text-right">
+        <div class="card">
+            <div><strong>Facture N°</strong> <span th:text="${invoice.reference}">INV-001</span></div>
+            <div><strong>Date :</strong> <span th:text="${invoice.documentDate}">2025-09-28</span></div>
+            <div><strong>Client :</strong> <span th:text="${invoice.customer.businessName}">Client SARL</span></div>
+        </div>
+    </div>
+</header>
+
+<div class="row">
+    <div class="card client">
+        <strong>Informations client</strong>
+        <div><span th:text="${invoice.customer.businessName}">Nom Client</span></div>
+        <div th:text="${invoice.customer.address}">Adresse client</div>
+        <div th:text="${invoice.customer.phoneNumber}">Téléphone</div>
+        <div th:text="${invoice.customer.email}">email@client.tn</div>
+    </div>
+</div>
+
+<table class="invoice" role="table" aria-label="Lignes de facture">
+    <thead>
+    <tr>
+        <th style="width:50%;">Désignation</th>
+        <th style="width:10%;" class="text-center">Qté</th>
+        <th style="width:15%;" class="text-right">PU</th>
+        <th style="width:10%;" class="text-center">Remise</th>
+        <th style="width:10%;" class="text-right">Total</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="line,iterStat : ${lines}">
+        <td th:text="${line.product != null ? line.product.name : line.description}">Produit / Service</td>
+        <td class="text-center" th:text="${line.quantity}">1</td>
+        <td class="text-right" th:text="${#numbers.formatDecimal(line.unitPrice, 0, 'COMMA', 2, 'POINT')}">100.00</td>
+        <td class="text-center" th:text="${line.discount} + '%'">0%</td>
+        <td class="text-right" th:text="${#numbers.formatDecimal(line.totalPrice, 0, 'COMMA', 2, 'POINT')}">100.00</td>
+    </tr>
+    </tbody>
+</table>
+
+<table class="totals" role="table" aria-label="Totaux">
+    <tr>
+        <td>Sous-total HT</td>
+        <td class="text-right" th:text="${#numbers.formatDecimal(invoice.subtotal, 0, 'COMMA', 2, 'POINT')}">3000.00
+        </td>
+    </tr>
+    <tr>
+        <td>TVA (<span th:text="${invoice.vat}">19</span>%)</td>
+        <td class="text-right"
+            th:text="${#numbers.formatDecimal((invoice.subtotal * invoice.vat) / 100, 0, 'COMMA', 2, 'POINT')}">570.00
+        </td>
+    </tr>
+    <tr>
+        <td>Timbre fiscal</td>
+        <td class="text-right" th:text="${#numbers.formatDecimal(invoice.taxStamp, 0, 'COMMA', 2, 'POINT')}">1.00</td>
+    </tr>
+    <tr class="total">
+        <td>Total TTC</td>
+        <td class="text-right" th:text="${#numbers.formatDecimal(invoice.totalAmount, 0, 'COMMA', 2, 'POINT')}">
+            3571.00
+        </td>
+    </tr>
+</table>
+
+<div class="amount-words">
+    <strong>Arrêté la présente facture à la somme de :</strong>
+    <div><span th:text="${amountInWords}"></span></div>
+</div>
+</body>
+</html>
