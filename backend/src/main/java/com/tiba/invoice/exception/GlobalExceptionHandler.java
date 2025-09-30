@@ -64,6 +64,11 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(ex.getMessage()));
   }
 
+  @ExceptionHandler(RuntimeException.class)
+  public ResponseEntity<ApiResponse<String>> handleRuntimeException(RuntimeException ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(ex.getMessage()));
+  }
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<ApiResponse<List<String>>> handleMethodArgumentNotValidException(
       MethodArgumentNotValidException ex) {
