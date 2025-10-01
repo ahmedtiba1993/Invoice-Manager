@@ -196,14 +196,14 @@ public class InvoiceService {
     Invoice invoice =
         invoiceRepository
             .findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Invoice not found with id: " + id));
+            .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND"));
     return invoiceMapper.toDetailResponse(invoice);
   }
 
   public Invoice getInvoiceById(Long id) {
     return invoiceRepository
         .findById(id)
-        .orElseThrow(() -> new EntityNotFoundException("Invoice not found with id: " + id));
+        .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND"));
   }
 
   public byte[] generateInvoicePdf(Long invoiceId) {
@@ -243,5 +243,11 @@ public class InvoiceService {
     } catch (Exception e) {
       throw new RuntimeException("Error generating PDF invoice", e);
     }
+  }
+
+  @Transactional
+  public void deleteInvoice(Long invoiceId) {
+    Invoice invoice = getInvoiceById(invoiceId);
+    invoiceRepository.delete(invoice);
   }
 }

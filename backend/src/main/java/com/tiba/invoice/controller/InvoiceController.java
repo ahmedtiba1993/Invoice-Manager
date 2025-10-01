@@ -69,4 +69,11 @@ public class InvoiceController {
         .contentType(MediaType.APPLICATION_PDF)
         .body(pdfBytes);
   }
+
+  @DeleteMapping("/{id}")
+  public ResponseEntity<ApiResponse<Void>> deleteInvoice(@PathVariable Long id) {
+    invoiceService.deleteInvoice(id);
+    ApiResponse<Void> response = ApiResponse.success(null, "INVOICE_DELETED_SUCCESSFULLY");
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
 }
