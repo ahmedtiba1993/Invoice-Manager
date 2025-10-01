@@ -13,6 +13,7 @@ import com.tiba.invoice.util.NumberToWordsUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,9 +25,11 @@ import org.thymeleaf.context.Context;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
+import java.net.URI;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +45,7 @@ public class InvoiceService {
   private final EntityManager entityManager;
   private final InvoiceMapper invoiceMapper;
   private final TemplateEngine templateEngine;
+  private final CompanyService companyService;
 
   @Transactional
   public Long createInvoice(InvoiceRequest request) {
@@ -214,6 +218,13 @@ public class InvoiceService {
 
       String amountInWords = NumberToWordsUtil.convert(invoice.getTotalAmount());
       context.setVariable("amountInWords", amountInWords);
+
+      Company company = companyService.getCompany();
+      context.setVariable("company", company);
+
+      String logoPath = new ClassPathResource("static/images/logo.jpg").getFile().getAbsolutePath();
+      URI uri = new File(logoPath).toURI();
+      context.setVariable("logoPath", uri.toString());
 
       // Générer le HTML avec Thymeleaf
       String htmlContent = templateEngine.process("invoice-template", context);

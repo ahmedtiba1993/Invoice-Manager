@@ -120,15 +120,38 @@
     </style>
 </head>
 <body>
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
 
-<header>
-    <div class="left">
-        <h1>Business Name</h1>
-        <div class="meta">
-            <div><strong>Adresse :</strong> <span>Adresse entreprise</span></div>
-            <div><strong>Tél :</strong> <span>+216 ...</span></div>
-            <div><strong>MF :</strong> <span>000000</span></div>
+    <div style="text-align: center;">
+        <h2 style="margin: 0; color: var(--accent); font-size:24px; font-weight:bold;">
+            Alarme Assistance
+        </h2>
+        <div style="margin-top: 4px; font-size:16px; font-weight:500;">
+            Nifes Jilani
         </div>
+        <div style="margin-top: 2px; font-size:14px; color: var(--muted);">
+            Vente et Installation de matériel de sécurité électronique
+        </div>
+    </div>
+
+</div>
+<header>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+
+        <div>
+            <h1 th:text="${company.getCompanyName()}" style="margin-top: 0; font-size: 18px;"></h1>
+            <div class="meta" style="font-size: 14px; line-height: 1.6;">
+                <div><strong>Adresse :</strong> <span th:text="${company.getAddress()}"></span></div>
+                <div><strong>Matricule Fiscale :</strong> <span th:text="${company.getTradeRegister()}"></span></div>
+            </div>
+        </div>
+
+        <div>
+            <div><strong>Téléphone :</strong> <span th:text="${company.getTelephone()}"></span></div>
+            <div><strong>Fax :</strong> <span th:text="${company.getFax()}"></span></div>
+            <div><strong>Mobile :</strong> <span th:text="${company.getMobileNumber()}"></span></div>
+        </div>
+
     </div>
 
     <div class="right text-right">
@@ -153,6 +176,7 @@
 <table class="invoice" role="table" aria-label="Lignes de facture">
     <thead>
     <tr>
+        <th style="width:20%;">Code</th>
         <th style="width:50%;">Désignation</th>
         <th style="width:10%;" class="text-center">Qté</th>
         <th style="width:15%;" class="text-right">PU</th>
@@ -162,7 +186,8 @@
     </thead>
     <tbody>
     <tr th:each="line,iterStat : ${lines}">
-        <td th:text="${line.product != null ? line.product.name : line.description}">Produit / Service</td>
+        <td class="text-center" th:text="${line.getProduct().getCode()}">1</td>
+        <td th:text="${line.description}"></td>
         <td class="text-center" th:text="${line.quantity}">1</td>
         <td class="text-right" th:text="${#numbers.formatDecimal(line.unitPrice, 0, 'COMMA', 2, 'POINT')}">100.00</td>
         <td class="text-center" th:text="${line.discount} + '%'">0%</td>
