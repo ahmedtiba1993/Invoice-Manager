@@ -39,7 +39,7 @@
       <jdbc-url>jdbc:h2:file:./data/invoice</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="jdbc:h2:file:./data/invoice [DEBUG]" group="​BackendApplication" uuid="081b9bd1-fdec-4732-887d-48cda5a8539a">
+    <data-source source="LOCAL" name="jdbc:h2:file:./data/invoice [DEBUG]" group="​BackendApplication" uuid="8d5d26b8-ce09-47fa-8f6b-0c4ea946d8a3">
       <driver-ref>h2.unified</driver-ref>
       <synchronize>true</synchronize>
       <imported>true</imported>
