@@ -76,4 +76,12 @@ public class InvoiceController {
     ApiResponse<Void> response = ApiResponse.success(null, "INVOICE_DELETED_SUCCESSFULLY");
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
+
+  @PostMapping("/from-quote/{quoteId}")
+  public ResponseEntity<ApiResponse<Long>> createInvoiceFromQuote(@PathVariable Long quoteId) {
+    Long invoiceId = invoiceService.createInvoiceFromQuote(quoteId);
+    ApiResponse<Long> response =
+        ApiResponse.success(invoiceId, "Invoice created successfully from quote");
+    return new ResponseEntity<>(response, HttpStatus.CREATED);
+  }
 }

@@ -33,6 +33,7 @@ import java.net.URI;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -46,6 +47,7 @@ public class InvoiceService {
   private final InvoiceMapper invoiceMapper;
   private final TemplateEngine templateEngine;
   private final CompanyService companyService;
+  private final QuoteService quoteService;
 
   @Transactional
   public Long createInvoice(InvoiceRequest request) {
@@ -249,5 +251,55 @@ public class InvoiceService {
   public void deleteInvoice(Long invoiceId) {
     Invoice invoice = getInvoiceById(invoiceId);
     invoiceRepository.delete(invoice);
+  }
+
+  @Transactional
+  public Long createInvoiceFromQuote(Long quoteId) {
+
+    // Retrieve the quote
+    Quote quote = quoteService.getQuoteById(quoteId);
+
+    // Check if an invoice already exists for this quote
+    if (quote.getInvoice() != null) {
+      throw new IllegalStateException("invoice_already_exists");
+    }
+
+    // Get fiscal configuration
+    FiscalConfig fiscalConfig = fiscalConfigService.getFiscalConfig();
+
+    // Create invoice from quote
+    Invoice invoice = new Invoice();
+    invoice.setReference(generateReferenceDev());
+    invoice.setDocumentDate(quote.getDocumentDate());
+    invoice.setVat(quote.getVat());
+    invoice.setSubtotal(quote.getSubtotal());
+    invoice.setTotalAmount(quote.getTotalAmount());
+    invoice.setTaxStamp(fiscalConfig.getTaxStamp().doubleValue());
+    invoice.setPaymentStatus(false);
+    invoice.setCustomer(quote.getCustomer());
+    invoice.setQuote(quote);
+
+    // Create invoice lines from quote lines
+    invoice.setInvoiceLines(
+        quote.getQuoteLines().stream()
+            .map(
+                qLine ->
+                    InvoiceLine.builder()
+                        .quantity(qLine.getQuantity())
+                        .unitPrice(qLine.getUnitPrice())
+                        .discount(qLine.getDiscount())
+                        .totalPrice(qLine.getTotalPrice())
+                        .product(qLine.getProduct())
+                        .invoice(invoice)
+                        .build())
+            .collect(Collectors.toList()));
+
+    // Save invoice
+    invoiceRepository.save(invoice).getId();
+
+    // Link invoice to quote
+    quote.setInvoice(invoice);
+
+    return invoice.getId();
   }
 }
